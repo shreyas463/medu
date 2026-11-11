@@ -37,7 +37,7 @@ export function SignWall({ signs, activeId, query, roomy, onInspect }: SignWallP
   }
 
   return (
-    <section className={roomy ? "wall is-roomy" : "wall"} aria-label="Signs">
+    <section className={roomy ? "wall is-roomy" : "wall"} data-tour="signs" aria-label="Signs">
       <p className="wall-status">
         {searching
           ? `${signs.length} ${signs.length === 1 ? "sign matches" : "signs match"} “${query.trim()}”`

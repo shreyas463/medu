@@ -47,7 +47,11 @@ export function Register({
         if (id) onDropSign(id)
       }}
     >
-      <div className={empty ? "register-line is-empty" : "register-line"} data-direction={direction}>
+      <div
+        className={empty ? "register-line is-empty" : "register-line"}
+        data-direction={direction}
+        data-tour="line"
+      >
         {empty ? (
           <p className="empty-prompt">Touch a sign.</p>
         ) : (
@@ -74,7 +78,7 @@ export function Register({
         )}
       </div>
       {empty ? (
-        <div className="chips" aria-label="Starter words">
+        <div className="chips" data-tour="words" aria-label="Starter words">
           {words.map((word) => (
             <button key={word.id} type="button" className="chip" onClick={() => onLoadWord(word)}>
               <span className="chip-glyphs" aria-hidden="true">

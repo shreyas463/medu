@@ -10,7 +10,19 @@ import { Reading } from "./components/Reading.tsx"
 import { Register } from "./components/Register.tsx"
 import { SearchField } from "./components/SearchField.tsx"
 import { SignWall } from "./components/SignWall.tsx"
+import { Tour } from "./components/Tour.tsx"
 import type { Direction, Word } from "./types.ts"
+
+const seenTour = "medu.tour"
+
+function firstVisit() {
+  if (window.location.hash.replace(/^#/, "").trim()) return false
+  try {
+    return localStorage.getItem(seenTour) !== "done"
+  } catch {
+    return false
+  }
+}
 
 function opening() {
   const ids = parseLine(window.location.hash)
@@ -32,6 +44,8 @@ export default function App() {
   const [direction, setDirection] = useState<Direction>("rtl")
   const [copied, setCopied] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const [tourOpen, setTourOpen] = useState(firstVisit)
+  const [tourSession, setTourSession] = useState(0)
 
   const shown = useMemo(() => visibleSigns(signs, query, category), [query, category])
   const active = activeId ? signById.get(activeId) ?? null : null
@@ -106,6 +120,15 @@ export default function App() {
     setQuery("")
   }
 
+  function finishTour() {
+    try {
+      localStorage.setItem(seenTour, "done")
+    } catch {
+      // Private browsing can block storage. The guide still closes.
+    }
+    setTourOpen(false)
+  }
+
   async function copyRubbing() {
     const url = new URL(window.location.href)
     url.hash = lineHash(line.map((token) => token.id))
@@ -142,8 +165,14 @@ export default function App() {
     <div className={active ? "app has-reading" : "app"}>
       <header>
         <p className="mark">Medu</p>
+        <button type="button" className="guide" onClick={() => {
+          setTourSession((value) => value + 1)
+          setTourOpen(true)
+        }}>
+          Guide
+        </button>
         <SearchField query={query} onQuery={setQuery} />
-        <div className="actions">
+        <div className="actions" data-tour="share">
           <button
             type="button"
             aria-pressed={direction === "rtl"}
@@ -194,6 +223,7 @@ export default function App() {
         roomy={!searching && category === "alphabet"}
         onInspect={(id) => inspect(id, null)}
       />
+      <Tour key={tourSession} open={tourOpen} onClose={finishTour} />
       <p className="sr-only" aria-live="polite">
         {copied ? "Link copied." : ""}
         {active ? `${active.id}. ${active.depiction}` : ""}
