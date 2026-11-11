@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { categories } from "./data/categories.ts"
 import { signById, signs } from "./data/signs.ts"
 import { words } from "./data/words.ts"
@@ -6,13 +6,30 @@ import { lineHash, makeLine, makeToken, parseLine } from "./lib/line.ts"
 import { saveRubbing } from "./lib/rubbing.ts"
 import { visibleSigns } from "./lib/search.ts"
 import { CategoryRail } from "./components/CategoryRail.tsx"
-import { Demo } from "./components/Demo.tsx"
 import { Reading } from "./components/Reading.tsx"
 import { Register } from "./components/Register.tsx"
 import { SearchField } from "./components/SearchField.tsx"
 import { SignWall } from "./components/SignWall.tsx"
 import { Tour } from "./components/Tour.tsx"
-import type { Direction, Word } from "./types.ts"
+import type { Direction, Token, Word } from "./types.ts"
+
+const beats: { ids: string[]; focus: string | null; text: string }[] = [
+  { ids: [], focus: null, text: "Touch a sign. Medu tells you the picture, and the sound." },
+  { ids: ["G1"], focus: "G1", text: "The vulture writes a soft breath. Carve it onto the line." },
+  { ids: ["G1"], focus: null, text: "Read from the right, one sign at a time." },
+  {
+    ids: ["F35", "I9", "D21"],
+    focus: "F35",
+    text: "Three signs. nfr means beautiful. Medu does not write the sentence.",
+  },
+]
+
+function placeBeat(index: number) {
+  const beat = beats[index]
+  const tokens = makeLine(beat.ids)
+  const token = beat.focus ? (tokens.find((item) => item.id === beat.focus) ?? null) : null
+  return { tokens, activeId: token?.id ?? null, selectedKey: token?.key ?? null }
+}
 
 const seenTour = "medu.tour"
 
@@ -47,7 +64,8 @@ export default function App() {
   const [dragOver, setDragOver] = useState(false)
   const [tourOpen, setTourOpen] = useState(firstVisit)
   const [tourSession, setTourSession] = useState(0)
-  const [demoOpen, setDemoOpen] = useState(false)
+  const [beat, setBeat] = useState<number | null>(null)
+  const beforeBeat = useRef<{ line: Token[]; activeId: string | null; selectedKey: string | null } | null>(null)
 
   const shown = useMemo(() => visibleSigns(signs, query, category), [query, category])
   const active = activeId ? signById.get(activeId) ?? null : null
@@ -155,6 +173,42 @@ export default function App() {
     window.setTimeout(() => setCopied(false), 1600)
   }
 
+  function watchLine() {
+    if (beat !== null) return
+    beforeBeat.current = { line, activeId, selectedKey }
+    setTourOpen(false)
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const index = reduce ? beats.length - 1 : 0
+    const placed = placeBeat(index)
+    setLine(placed.tokens)
+    setActiveId(placed.activeId)
+    setSelectedKey(placed.selectedKey)
+    setBeat(index)
+  }
+
+  function stopWatch() {
+    const previous = beforeBeat.current
+    beforeBeat.current = null
+    setBeat(null)
+    if (!previous) return
+    setLine(previous.line)
+    setActiveId(previous.activeId)
+    setSelectedKey(previous.selectedKey)
+  }
+
+  useEffect(() => {
+    if (beat === null || beat >= beats.length - 1) return
+    const timer = window.setTimeout(() => {
+      const next = beat + 1
+      const placed = placeBeat(next)
+      setLine(placed.tokens)
+      setActiveId(placed.activeId)
+      setSelectedKey(placed.selectedKey)
+      setBeat(next)
+    }, 3400)
+    return () => window.clearTimeout(timer)
+  }, [beat])
+
   function downloadRubbing() {
     const carved = line.flatMap((token) => {
       const sign = signById.get(token.id)
@@ -168,7 +222,7 @@ export default function App() {
       <header>
         <p className="mark">Medu</p>
         <div className="header-tools">
-          <button type="button" className="guide" onClick={() => setDemoOpen(true)}>
+          <button type="button" className="guide" onClick={watchLine}>
             Watch
           </button>
           <button type="button" className="guide" onClick={() => {
@@ -207,7 +261,8 @@ export default function App() {
           onLoadWord={loadWord}
           onDragOver={setDragOver}
           onDropSign={carve}
-          onWatch={() => setDemoOpen(true)}
+          note={beat === null ? null : beats[beat].text}
+          onStop={stopWatch}
         />
         <Reading
           sign={active}
@@ -232,7 +287,6 @@ export default function App() {
         onInspect={(id) => inspect(id, null)}
       />
       <Tour key={tourSession} open={tourOpen} onClose={finishTour} />
-      <Demo open={demoOpen} onClose={() => setDemoOpen(false)} />
       <p className="sr-only" aria-live="polite">
         {copied ? "Link copied." : ""}
         {active ? `${active.id}. ${active.depiction}` : ""}
