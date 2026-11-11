@@ -2,28 +2,28 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from "react"
 
 const steps = [
   {
-    title: "How Medu works",
-    body: "This is a short guide. Touch a sign, read what it means, then place it on the line.",
+    title: "Touch a sign",
+    body: "Read what it means, then place it on the line.",
     target: null,
   },
   {
-    title: "Touch a sign",
-    body: "Start with Alphabet. Those twenty-four signs are sounds, like letters. The other groups are pictures of things.",
+    title: "The alphabet is sound",
+    body: "Twenty-four signs work like letters. The other groups are pictures.",
     target: "[data-tour='signs']",
   },
   {
-    title: "Place it on the line",
-    body: "Press Carve to add the sign here. Read the line from the right, the way Egyptian is written.",
+    title: "Carve it onto the line",
+    body: "Read from the right, one sign at a time.",
     target: "[data-tour='line']",
   },
   {
-    title: "Or try a word",
-    body: "These four words are ready to open: beautiful, life, the sun, and peace.",
+    title: "Or open a word",
+    body: "Beautiful, life, the sun, and peace are ready.",
     target: "[data-tour='words']",
   },
   {
-    title: "Share when you want",
-    body: "Copy the rubbing sends this line to someone. Save rubbing downloads a picture. Medu reads one sign at a time. It does not translate a whole sentence.",
+    title: "Keep the line",
+    body: "Copy sends it. Save downloads a picture. Medu does not translate a sentence.",
     target: "[data-tour='share']",
   },
 ] as const
@@ -38,7 +38,6 @@ type Hole = { top: number; left: number; width: number; height: number }
 export function Tour({ open, onClose }: TourProps) {
   const [step, setStep] = useState(0)
   const [hole, setHole] = useState<Hole | null>(null)
-  const [cardTop, setCardTop] = useState<number | null>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
   const titleId = useId()
   const current = steps[step]
@@ -55,31 +54,25 @@ export function Tour({ open, onClose }: TourProps) {
     const place = () => {
       if (!selector) {
         setHole(null)
-        setCardTop(null)
         return
       }
       const node = document.querySelector(selector)
       if (!node) {
         setHole(null)
-        setCardTop(null)
         return
       }
-      node.scrollIntoView({ block: "nearest", inline: "nearest" })
+      node.scrollIntoView({ block: "center", inline: "nearest" })
       const rect = node.getBoundingClientRect()
-      const pad = 8
-      const top = Math.max(8, rect.top - pad)
-      const height = Math.min(rect.height + pad * 2, 240)
+      const pad = 12
+      const dock = 168
+      const top = Math.max(12, rect.top - pad)
+      const height = Math.max(56, Math.min(rect.height + pad * 2, window.innerHeight - dock - top - 16))
       setHole({
         top,
-        left: Math.max(8, rect.left - pad),
-        width: Math.min(rect.width + pad * 2, window.innerWidth - 16),
+        left: Math.max(12, rect.left - pad),
+        width: Math.min(rect.width + pad * 2, window.innerWidth - 24),
         height,
       })
-      const cardHeight = 230
-      const gap = 16
-      const below = top + height + gap
-      if (below + cardHeight <= window.innerHeight - 12) setCardTop(below)
-      else setCardTop(Math.max(12, top - gap - cardHeight))
     }
     place()
     window.addEventListener("resize", place)
@@ -112,15 +105,16 @@ export function Tour({ open, onClose }: TourProps) {
       ) : (
         <div className="tour-dim" />
       )}
-      <div
-        className={hole ? "tour-card is-anchored" : "tour-card"}
-        style={cardTop === null ? undefined : { top: cardTop }}
-      >
-        <p className="tour-count">
-          {step + 1} of {steps.length}
+      <div className="tour-card">
+        <p className="tour-count" aria-label={`${step + 1} of ${steps.length}`}>
+          {steps.map((_, index) => (
+            <span key={index} className={index === step ? "is-on" : undefined} />
+          ))}
         </p>
-        <h2 id={titleId}>{current.title}</h2>
-        <p>{current.body}</p>
+        <div className="tour-copy">
+          <h2 id={titleId}>{current.title}</h2>
+          <p>{current.body}</p>
+        </div>
         <div className="tour-actions">
           <button type="button" className="tour-skip" onClick={onClose}>
             Skip

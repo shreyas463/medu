@@ -11,7 +11,8 @@ type RegisterProps = {
   onLoadWord: (word: Word) => void
   onDragOver: (over: boolean) => void
   onDropSign: (id: string) => void
-  onWatch: () => void
+  note: string | null
+  onStop: () => void
 }
 
 export function Register({
@@ -25,7 +26,8 @@ export function Register({
   onLoadWord,
   onDragOver,
   onDropSign,
-  onWatch,
+  note,
+  onStop,
 }: RegisterProps) {
   const empty = line.length === 0
 
@@ -55,12 +57,7 @@ export function Register({
         data-tour="line"
       >
         {empty ? (
-          <div className="empty-copy">
-            <p className="empty-prompt">Touch a sign.</p>
-            <button type="button" className="empty-watch" onClick={onWatch}>
-              Watch how a line is read
-            </button>
-          </div>
+          <p className="empty-prompt">Touch a sign.</p>
         ) : (
           line.map((token) => {
             const sign = signs.get(token.id)
@@ -84,7 +81,14 @@ export function Register({
           })
         )}
       </div>
-      {empty ? (
+      {note ? (
+        <p className="play-note">
+          <span>{note}</span>
+          <button type="button" onClick={onStop}>
+            Close
+          </button>
+        </p>
+      ) : empty ? (
         <div className="chips" data-tour="words" aria-label="Starter words">
           {words.map((word) => (
             <button key={word.id} type="button" className="chip" onClick={() => onLoadWord(word)}>
