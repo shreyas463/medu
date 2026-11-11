@@ -58,6 +58,11 @@ async function scanFile(file) {
   if (rel(file).startsWith("src/") && /\bconsole\./.test(text)) {
     fail(`${rel(file)} logs to the console`)
   }
+  if (rel(file).startsWith("src/")) {
+    for (const sink of ["dangerouslySetInnerHTML", "innerHTML", "document.write", "eval(", "new Function"]) {
+      if (text.includes(sink)) fail(`${rel(file)} uses ${sink}`)
+    }
+  }
   const names = text.match(/VITE_[A-Z0-9_]+/g) ?? []
   for (const name of names) {
     if (!allowedVite.has(name)) fail(`${rel(file)} reads ${name}. Only VITE_GOATCOUNTER may be inlined into the page.`)
@@ -73,7 +78,7 @@ function eq(actual, expected, label) {
   if (actual !== expected) fail(`${label}: expected ${expected}, got ${actual}`)
 }
 
-async function checkCounter() {
+async function checkBehavior() {
   const server = await createServer({
     root,
     server: { middlewareMode: true },
@@ -81,20 +86,66 @@ async function checkCounter() {
     logLevel: "error",
   })
   try {
-    const mod = await server.ssrLoadModule("/src/lib/counter.ts")
-    eq(mod.counterEndpoint("medu"), "https://medu.goatcounter.com/count", "short code")
-    eq(mod.counterEndpoint("medu.goatcounter.com"), "https://medu.goatcounter.com/count", "host")
-    eq(mod.counterEndpoint("https://medu.goatcounter.com/count?x=1"), "https://medu.goatcounter.com/count", "strips query")
-    eq(mod.counterOrigin("medu"), "https://medu.goatcounter.com", "origin")
-    eq(mod.counterEndpoint(""), null, "empty")
-    eq(mod.counterEndpoint("http://medu.goatcounter.com/count"), null, "http")
-    eq(mod.counterEndpoint("https://evil.example/count"), null, "other host")
-    eq(mod.counterEndpoint("medu.goatcounter.com.evil.com"), null, "suffix trick")
-    eq(mod.counterEndpoint("https://user:pass@medu.goatcounter.com/count"), null, "userinfo")
-    eq(mod.counterEndpoint("not a code"), null, "spaces")
+    const counter = await server.ssrLoadModule("/src/lib/counter.ts")
+    const line = await server.ssrLoadModule("/src/lib/line.ts")
+    const search = await server.ssrLoadModule("/src/lib/search.ts")
+    const data = await server.ssrLoadModule("/src/data/signs.ts")
+
+    eq(counter.counterEndpoint("medu"), "https://medu.goatcounter.com/count", "short code")
+    eq(counter.counterEndpoint("medu.goatcounter.com"), "https://medu.goatcounter.com/count", "host")
+    eq(counter.counterEndpoint("https://medu.goatcounter.com/count?x=1"), "https://medu.goatcounter.com/count", "strips query")
+    eq(counter.counterOrigin("medu"), "https://medu.goatcounter.com", "origin")
+    eq(counter.counterEndpoint(""), null, "empty")
+    eq(counter.counterEndpoint("http://medu.goatcounter.com/count"), null, "http")
+    eq(counter.counterEndpoint("https://evil.example/count"), null, "other host")
+    eq(counter.counterEndpoint("medu.goatcounter.com.evil.com"), null, "suffix trick")
+    eq(counter.counterEndpoint("https://user:pass@medu.goatcounter.com/count"), null, "userinfo")
+    eq(counter.counterEndpoint("not a code"), null, "spaces")
+
+    const script = line.parseLine("#<script>alert(1)</script>")
+    if (script.length !== 0) fail("a script in the address was kept")
+    const encoded = line.parseLine("#%3Cscript%3Ealert(1)%3C/script%3E")
+    if (encoded.length !== 0) fail("an encoded script in the address was kept")
+    const broken = line.parseLine("#%")
+    if (broken.length !== 0) fail("a broken percent-escape was kept")
+    const injected = line.parseLine("#F35-I9-D21' OR 1=1--")
+    if (!injected.includes("F35") || !injected.includes("I9")) fail("known signs were dropped")
+    if (injected.includes("D21")) fail("a sign glued to SQL text was kept")
+    if (injected.some((id) => !/^[A-Za-z0-9]+$/.test(id))) fail("a parsed id is not a sign code")
+
+    const signs = data.signs
+    const sqlHits = search.visibleSigns(signs, "' OR 1=1 --", "A")
+    if (sqlHits.length === signs.length || sqlHits.length > 3) fail("a SQL-shaped search matched too widely")
+    const markupHits = search.visibleSigns(signs, "<img src=x onerror=alert(1)>", "A")
+    if (markupHits.length !== 0) fail("markup in search matched a sign")
+    const owls = search.visibleSigns(signs, "owl", "alphabet")
+    if (!owls.some((sign) => sign.id === "G17")) fail("owl search lost the owl")
+    if (owls.some((sign) => /bowl|fowling/i.test(`${sign.depiction} ${sign.meaning}`))) {
+      fail("owl search matched inside another word")
+    }
+    search.visibleSigns(signs, "a".repeat(5000), "alphabet")
   } finally {
     await server.close()
   }
+}
+
+async function checkBuiltPage() {
+  const html = await readFile(path.join(root, "dist/index.html"), "utf8")
+  const raw = html.match(/http-equiv="Content-Security-Policy"[^>]*content="([^"]+)"/) ||
+    html.match(/content="([^"]+)"[^>]*http-equiv="Content-Security-Policy"/)
+  const policy = raw ? raw[1].replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&") : ""
+  if (!policy) fail("the built page has no Content-Security-Policy")
+  else {
+    if (!policy.includes("script-src 'self'")) fail("the built page does not lock scripts to this site")
+    if (policy.includes("unsafe-eval") || /script-src[^;]*unsafe-inline/.test(policy)) {
+      fail("the built page allows inline or eval scripts")
+    }
+  }
+  if (!html.includes('name="referrer" content="strict-origin-when-cross-origin"')) {
+    fail("the built page has no referrer policy")
+  }
+  const privacy = await readFile(path.join(root, "dist/privacy.html"), "utf8")
+  if (!privacy.includes("script-src 'none'")) fail("the privacy page allows scripts")
 }
 
 const sourceDirs = ["src", "scripts", "public", ".github"].map((dir) => path.join(root, dir))
@@ -111,9 +162,10 @@ if (wantDist) {
     fail("dist is missing. Run the check after the build.")
   }
   await scanTree(dist)
+  await checkBuiltPage()
 }
 
-await checkCounter()
+await checkBehavior()
 
 if (failed > 0) {
   console.error(`${failed} check${failed === 1 ? "" : "s"} failed`)

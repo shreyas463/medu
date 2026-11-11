@@ -11,6 +11,7 @@ export function SearchField({ query, onQuery }: SearchFieldProps) {
         type="search"
         value={query}
         placeholder="Search a sign, a sound, an owl"
+        maxLength={80}
         onChange={(event) => onQuery(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Escape") onQuery("")
