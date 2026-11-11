@@ -490,6 +490,11 @@ header {
   color: rgba(243, 239, 228, 0.42);
 }
 
+.colophon a {
+  color: var(--gold);
+  text-underline-offset: 3px;
+}
+
 @keyframes settle {
   from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: none; }

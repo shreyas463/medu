@@ -71,7 +71,8 @@ export function SignWall({ signs, activeId, query, roomy, onInspect }: SignWallP
       )}
       <p className="colophon">
         Catalog descriptions from Unicode Unikemet. The alphabet, and the common signs Medu introduces, are written
-        here. Glyphs are Noto Sans Egyptian Hieroglyphs.
+        here. Glyphs are Noto Sans Egyptian Hieroglyphs.{" "}
+        <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy</a>
       </p>
     </section>
   )

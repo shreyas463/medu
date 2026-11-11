@@ -27,7 +27,22 @@ GitHub Pages does not count who opens the site. Medu can send one page view to [
 2. In this GitHub repo, open Settings → Secrets and variables → Actions → Variables, and add `GOATCOUNTER` with that code (`medu`, or the full `https://medu.goatcounter.com/count`).
 3. Push to `main`. The next deploy starts counting.
 
-The numbers are at `https://YOURCODE.goatcounter.com`. They are visitors and page views, not names.
+The numbers are at `https://YOURCODE.goatcounter.com`. They are visitors and page views. The dashboard stays private to you. Leave GoatCounter’s “individual pageviews” setting off. That setting would store one row per view.
+
+The site code is the public address of the counter. It is not a password, and the GoatCounter login never goes in this repo or in the page.
+
+## Where data sits
+
+The privacy page is published with the site, at `privacy.html`. It is the list visitors can read.
+
+| What | Where |
+| --- | --- |
+| Guide finished (`medu.tour` = `done`) | That browser’s local storage. It is not sent. |
+| The carved line | The page address (`#F35-I9-D21`). Medu does not keep a copy. |
+| One page view, only after `GOATCOUNTER` is set | GoatCounter, aggregate tables, on Hetzner servers in Finland and Germany. The IP address is discarded after the country is known. |
+| The request that loads the page | GitHub Pages, the host. Their privacy statement covers those logs. |
+
+There is no Medu account and no Medu database.
 
 ## Sources
 
