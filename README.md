@@ -25,7 +25,7 @@ The privacy page is published with the site, at `privacy.html`. It is the list v
 
 | What | Where |
 | --- | --- |
-| Guide finished (`medu.tour` = `done`) | That browser’s local storage. It is not sent. |
+| The guide | Nowhere. It opens with the page and keeps nothing. |
 | The carved line | The page address (`#F35-I9-D21`). Medu does not keep a copy. |
 | The request that loads the page | GitHub Pages, the host. Their privacy statement covers those logs. |
 

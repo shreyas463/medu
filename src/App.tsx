@@ -31,17 +31,6 @@ function placeBeat(index: number) {
   return { tokens, activeId: token?.id ?? null, selectedKey: token?.key ?? null }
 }
 
-const seenTour = "medu.tour"
-
-function firstVisit() {
-  if (window.location.hash.replace(/^#/, "").trim()) return false
-  try {
-    return localStorage.getItem(seenTour) !== "done"
-  } catch {
-    return false
-  }
-}
-
 function opening() {
   const ids = parseLine(window.location.hash)
   const tokens = makeLine(ids)
@@ -62,7 +51,7 @@ export default function App() {
   const [direction, setDirection] = useState<Direction>("rtl")
   const [copied, setCopied] = useState(false)
   const [dragOver, setDragOver] = useState(false)
-  const [tourOpen, setTourOpen] = useState(firstVisit)
+  const [tourOpen, setTourOpen] = useState(true)
   const [tourSession, setTourSession] = useState(0)
   const [beat, setBeat] = useState<number | null>(null)
   const beforeBeat = useRef<{ line: Token[]; activeId: string | null; selectedKey: string | null } | null>(null)
@@ -141,11 +130,6 @@ export default function App() {
   }
 
   function finishTour() {
-    try {
-      localStorage.setItem(seenTour, "done")
-    } catch {
-      // Private browsing can block storage. The guide still closes.
-    }
     setTourOpen(false)
   }
 

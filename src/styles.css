@@ -138,7 +138,7 @@ header {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-height: 188px;
-  max-height: 320px;
+  max-height: 520px;
   border-bottom: 1px solid var(--gold-line);
 }
 
@@ -324,8 +324,8 @@ header {
 .reading-glyph {
   margin: 4px 0 0;
   font-family: var(--glyph);
-  font-size: 120px;
-  line-height: 0.8;
+  font-size: 96px;
+  line-height: 1;
   cursor: grab;
 }
 
@@ -350,6 +350,7 @@ header {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 6px;
+  flex-shrink: 0;
 }
 
 .facts p { margin: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -375,12 +376,11 @@ header {
 
 .reading-actions {
   display: flex;
+  flex-shrink: 0;
   gap: 10px;
-  position: sticky;
-  bottom: 0;
   margin-top: auto;
-  padding-top: 12px;
-  background: linear-gradient(to top, var(--raised) 75%, rgba(34, 31, 26, 0));
+  padding-top: 16px;
+  background: var(--raised);
 }
 
 .carve, .lift {
@@ -589,7 +589,7 @@ header {
     display: block;
   }
 
-  .has-reading { padding-bottom: 46vh; }
+  .has-reading { padding-bottom: 70vh; }
 
   .reading {
     display: flex;
@@ -598,7 +598,7 @@ header {
     right: 0;
     bottom: 0;
     z-index: 4;
-    max-height: 58vh;
+    max-height: 70vh;
     border-left: 0;
     border-top: 1px solid rgba(196, 165, 116, 0.7);
     animation: sheet 220ms ease;
@@ -608,7 +608,7 @@ header {
 
   .reading-glyph { font-size: 72px; }
 
-  .cell { scroll-margin-top: 250px; scroll-margin-bottom: 46vh; }
+  .cell { scroll-margin-top: 250px; scroll-margin-bottom: 70vh; }
 
   .wall.is-roomy .wall-grid { grid-template-columns: repeat(auto-fill, 84px); }
   .wall.is-roomy .cell { width: 84px; height: 84px; }
