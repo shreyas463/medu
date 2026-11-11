@@ -19,6 +19,16 @@ npm run dev
 
 `npm run signs` rebuilds `src/data/signs.json` from the Unicode Unikemet catalog.
 
+## Visits
+
+GitHub Pages does not count who opens the site. Medu can send one page view to [GoatCounter](https://www.goatcounter.com/), a private dashboard with no cookies and no banner on the page. Carving a sign does not count as another visit.
+
+1. Create a free site at goatcounter.com. A public project can use the free plan. Name it `medu`, or any short code.
+2. In this GitHub repo, open Settings → Secrets and variables → Actions → Variables, and add `GOATCOUNTER` with that code (`medu`, or the full `https://medu.goatcounter.com/count`).
+3. Push to `main`. The next deploy starts counting.
+
+The numbers are at `https://YOURCODE.goatcounter.com`. They are visitors and page views, not names.
+
 ## Sources
 
 - Sign list, depictions, and functions for the catalog: [Unicode Unikemet](https://www.unicode.org/Public/UCD/latest/ucd/Unikemet.txt), Unicode, Inc. Used under the [Unicode Terms of Use](https://www.unicode.org/terms_of_use.html).
