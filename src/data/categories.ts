@@ -1,0 +1,35 @@
+import type { Category } from "../types.ts"
+
+export const categories: Category[] = [
+  { id: "alphabet", label: "Alphabet" },
+  { id: "A", label: "Man" },
+  { id: "B", label: "Woman" },
+  { id: "C", label: "Gods" },
+  { id: "D", label: "Body" },
+  { id: "E", label: "Mammals" },
+  { id: "F", label: "Mammal parts" },
+  { id: "G", label: "Birds" },
+  { id: "H", label: "Bird parts" },
+  { id: "I", label: "Reptiles" },
+  { id: "K", label: "Fish" },
+  { id: "L", label: "Insects" },
+  { id: "M", label: "Plants" },
+  { id: "N", label: "Sky and land" },
+  { id: "O", label: "Buildings" },
+  { id: "P", label: "Ships" },
+  { id: "Q", label: "Furniture" },
+  { id: "R", label: "Temple" },
+  { id: "S", label: "Regalia" },
+  { id: "T", label: "War" },
+  { id: "U", label: "Craft" },
+  { id: "V", label: "Rope and baskets" },
+  { id: "W", label: "Vessels" },
+  { id: "X", label: "Bread" },
+  { id: "Y", label: "Writing" },
+  { id: "Z", label: "Strokes" },
+  { id: "Aa", label: "Unclassified" },
+  { id: "NL", label: "Lower Egypt" },
+  { id: "NU", label: "Upper Egypt" },
+]
+
+export const categoryLabel = new Map(categories.map((category) => [category.id, category.label]))
