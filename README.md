@@ -29,7 +29,7 @@ GitHub Pages does not count who opens the site. Medu can send one page view to [
 
 The numbers are at `https://YOURCODE.goatcounter.com`. They are visitors and page views. The dashboard stays private to you. Leave GoatCounter’s “individual pageviews” setting off. That setting would store one row per view.
 
-The site code is the public address of the counter. It is not a password, and the GoatCounter login never goes in this repo or in the page.
+The site code is the public address of the counter. It is not a password, and the GoatCounter login never goes in this repo or in the page. `.env` files are gitignored. Vite would copy any `VITE_` variable into the public page, so the only one the build accepts is `VITE_GOATCOUNTER`, and the address has to be a `something.goatcounter.com` site.
 
 ## Where data sits
 

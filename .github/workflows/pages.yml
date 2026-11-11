@@ -27,6 +27,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Mask the counter code
+        run: |
+          if [ -n "$GOATCOUNTER" ]; then
+            echo "::add-mask::$GOATCOUNTER"
+          fi
+        env:
+          GOATCOUNTER: ${{ vars.GOATCOUNTER }}
       - run: npm run build
         env:
           VITE_GOATCOUNTER: ${{ vars.GOATCOUNTER }}

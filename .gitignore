@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Env files stay off the repo and out of the Pages artifact.
+# Vite inlines any VITE_ name into the public page, so a secret must not use that prefix.
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
