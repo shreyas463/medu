@@ -6,6 +6,7 @@ import { lineHash, makeLine, makeToken, parseLine } from "./lib/line.ts"
 import { saveRubbing } from "./lib/rubbing.ts"
 import { visibleSigns } from "./lib/search.ts"
 import { CategoryRail } from "./components/CategoryRail.tsx"
+import { Demo } from "./components/Demo.tsx"
 import { Reading } from "./components/Reading.tsx"
 import { Register } from "./components/Register.tsx"
 import { SearchField } from "./components/SearchField.tsx"
@@ -46,6 +47,7 @@ export default function App() {
   const [dragOver, setDragOver] = useState(false)
   const [tourOpen, setTourOpen] = useState(firstVisit)
   const [tourSession, setTourSession] = useState(0)
+  const [demoOpen, setDemoOpen] = useState(false)
 
   const shown = useMemo(() => visibleSigns(signs, query, category), [query, category])
   const active = activeId ? signById.get(activeId) ?? null : null
@@ -165,12 +167,17 @@ export default function App() {
     <div className={active ? "app has-reading" : "app"}>
       <header>
         <p className="mark">Medu</p>
-        <button type="button" className="guide" onClick={() => {
-          setTourSession((value) => value + 1)
-          setTourOpen(true)
-        }}>
-          Guide
-        </button>
+        <div className="header-tools">
+          <button type="button" className="guide" onClick={() => setDemoOpen(true)}>
+            Watch
+          </button>
+          <button type="button" className="guide" onClick={() => {
+            setTourSession((value) => value + 1)
+            setTourOpen(true)
+          }}>
+            Guide
+          </button>
+        </div>
         <SearchField query={query} onQuery={setQuery} />
         <div className="actions" data-tour="share">
           <button
@@ -200,6 +207,7 @@ export default function App() {
           onLoadWord={loadWord}
           onDragOver={setDragOver}
           onDropSign={carve}
+          onWatch={() => setDemoOpen(true)}
         />
         <Reading
           sign={active}
@@ -224,6 +232,7 @@ export default function App() {
         onInspect={(id) => inspect(id, null)}
       />
       <Tour key={tourSession} open={tourOpen} onClose={finishTour} />
+      <Demo open={demoOpen} onClose={() => setDemoOpen(false)} />
       <p className="sr-only" aria-live="polite">
         {copied ? "Link copied." : ""}
         {active ? `${active.id}. ${active.depiction}` : ""}
